@@ -68,7 +68,7 @@ function compress(src,out,type){
     cp=spawn("java",args);
 
     cp.stderr.on('data',function(data){
-      console.log("process stderr:", data);
+      console.log(data.toString());
     });
 
     cp.on("end",function(){       
