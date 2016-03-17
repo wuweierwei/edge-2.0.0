@@ -1,10 +1,40 @@
 /*! ander <anderpang@qq.com> 2016/3/15 */
 "use strict";
-var _WEBKIT_="-webkit-",
-    _MOZ_="-moz-",
-   _O_="-o-";
+const _WEBKIT_="-webkit-",
+      _MOZ_   ="-moz-",
+      _O_     ="-o-";
 
-var transformReg=/\btransform(?:-[^:]+?)*:[^;\}]+?(?=;|\})/mg;
+const transformReg=regCompile(/\btransform(?:-[^:]+?)*:[^;\}]+?(?=;|\})/mg);
+
+var css={};
+
+  //规则
+  css.rules=[
+  {
+    reg:regCompile(/\btransition(?:-[^:]+?)*:[^;\}]+?(?=;|\})/mg),  //transition
+    fn:_transition
+  },
+  {
+    reg:regCompile(/\b(animation(?:-[^:]+?)*:)([^;\}]+?)(?=;|\})/mg),  //animation
+    fn:_animation
+  },
+  {
+      reg:transformReg,                         //transform
+      fn:_usually
+  },
+  {
+    reg:regCompile(/\b(background(?:-image)*\s*:)\s*(linear-gradient\s*\([\s\S]*?)(?=;|\})/mg),  //linear-gradient
+    fn:_gradient
+  },
+  {
+    reg:regCompile(/\b(background(?:-image)*\s*:)\s*(radial-gradient\s*\([\s\S]*?)(?=;|\})/mg),  //radial-gradient
+    fn:_gradient
+  },
+  {
+      reg:regCompile(/\buser-select\s*:[^;\}]+?(?=;|\})/mg),      //user-select
+      fn:_usually
+  }
+];
 
 //通用的，直接在前面加前缀
 function _usually(a){
@@ -60,39 +90,10 @@ function _gradient(a,b,c){
        return out;
 }
 
-
-var css={};
-
-  css.rules=[
-  {
-    reg:/\btransition(?:-[^:]+?)*:[^;\}]+?(?=;|\})/mg,  //transition
-    fn:_transition
-  },
-  {
-    reg:/\b(animation(?:-[^:]+?)*:)([^;\}]+?)(?=;|\})/mg,  //animation
-    fn:_animation
-  },
-  {
-      reg:transformReg,                         //transform
-      fn:_usually
-  },
-  {
-    reg:/\b(background(?:-image)*\s*:)\s*(linear-gradient\s*\([\s\S]*?)(?=;|\})/mg,  //linear-gradient
-    fn:_gradient
-  },
-  {
-    reg:/\b(background(?:-image)*\s*:)\s*(radial-gradient\s*\([\s\S]*?)(?=;|\})/mg,  //radial-gradient
-    fn:_gradient
-  },
-  {
-      reg:/\buser-select\s*:[^;\}]+?(?=;|\})/mg,      //user-select
-      fn:_usually
-  }
-];
-
 //处理 @keyframes
 css.keyframes={
-    reg:/@keyframes\s+[^{]+?\{(?:\{[^}]*?\}|[^}])*\}/mg,
+    reg:regCompile(/@keyframes\s+[^{]+?\{(?:\{[^}]*?\}|[^}])*\}/mg),
+    reg1:regCompile(/\$\{keyframes__(\d+)\}/mg),
     _dispose:function(a){
       var out=[],a1=a.substr(1);
       out.push(this._tmpl(_WEBKIT_,a1));
@@ -117,10 +118,16 @@ css.keyframes={
        });
     },
     put:function(txt,arr){
-       return txt.replace(/\$\{keyframes__(\d+)\}/mg,function(a,idx){
+       return txt.replace(this.reg1,function(a,idx){
             return arr[idx];
         });
     }
 };
+
+//正则处理
+function regCompile(reg){
+  reg.compile(reg);
+  return reg;
+}
 
 module.exports=css;

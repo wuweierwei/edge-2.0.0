@@ -1,11 +1,9 @@
-/*! ander <anderpang@qq.com> 2016/3/15 */
+/*! ander <anderpang@qq.com> 2016/3/17 */
 "use strict";
 var fs=require("fs"),
     path=require("path"),
-    root=path.dirname(__dirname),
-    config=require(root+"/config"),
-    compress=require(root+"/lib/compressor"),
-    charset=config.charset||"utf8";
+    compress=require("./compressor"),
+    config=require("../config");
 
   function watch(realpath,outpath){
      var files=fs.readdirSync(realpath),changeList={},timer=0;
@@ -45,7 +43,6 @@ var fs=require("fs"),
                changeList[name]=[                
                   path.join(realpath,name),
                   path.join(outpath,name),
-                  charset,
                   "js"               
                ];
              }
@@ -64,7 +61,6 @@ var fs=require("fs"),
                changeList[name]=[                
                   path.join(realpath,name),
                   path.join(outpath,name),
-                  charset,
                   "css"               
                ];
              }
@@ -127,6 +123,7 @@ var fs=require("fs"),
         fs.realpath(config.path,function(err,realpath){
            watch(realpath);
         });
+        console.log("\x1b[44m Listening on path:\x1b[0m",config.path);
       }
       else
       {

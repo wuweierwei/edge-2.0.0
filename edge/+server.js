@@ -1,4 +1,4 @@
-/*! ander <anderpang@qq.com> 2016/3/15 */
+/*! ander <anderpang@qq.com> 2016/3/17 */
 "use strict";
 var path=require("path"),
     spawn=require("child_process").spawn,
@@ -29,9 +29,7 @@ function _start(){
       {
        console.log("\x1b[44m Server was closed! \x1b[0m");
       }
-   });
-
-    console.log("\x1b[44m Listening... \x1b[0m");
+   });   
 }
 
 function restart(){
