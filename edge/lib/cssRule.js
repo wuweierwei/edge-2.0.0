@@ -15,8 +15,8 @@ var css={};
     fn:_transition
   },
   {
-    reg:regCompile(/\b(animation(?:-[^:]+?)*:)([^;\}]+?)(?=;|\})/mg),  //animation
-    fn:_animation
+    reg:regCompile(/\banimation(?:-[^:]+?)*:[^;\}]+?(?=;|\})/mg),  //animation
+    fn:_usually
   },
   {
       reg:transformReg,                         //transform
@@ -33,7 +33,204 @@ var css={};
   {
       reg:regCompile(/\buser-select\s*:[^;\}]+?(?=;|\})/mg),      //user-select
       fn:_usually
-  }
+  },
+  /* flex start */
+  {
+      reg:regCompile(/\bdisplay\s*:\s*flex\b/mg),
+      fn:function(){
+          return `display: -webkit-box;
+                  display: -webkit-flex;
+                  display: -moz-flex;
+                  display: -ms-flexbox;
+                  display: flex`;
+      }
+  },
+  {
+      reg:regCompile(/\bdisplay\s*:\s*inline-flex\b/mg),
+      fn:function(){
+          return `display: -webkit-inline-box;
+                  display: -webkit-inline-flex;
+                  display: -moz-inline-flex;
+                  display: -ms-inline-flexbox;
+                  display: inline-flex`;
+      }
+  },
+  {
+      reg:regCompile(/\bflex-direction\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {
+        var oldStandard,
+            standard=`
+             -webkit-flex-direction: ${value};
+             -moz-flex-direction: ${value};
+             -ms-flex-direction: ${value};
+             flex-direction: ${value}`;
+        
+        switch(value)
+        {
+            case "row-reverse":
+              oldStandard="-webkit-box-direction: reverse;-webkit-box-orient: horizontal;";
+            break;
+            case "column":
+              oldStandard="-webkit-box-direction: normal;-webkit-box-orient: vertical;";
+            break;
+            case "column-reverse":
+              oldStandard="-webkit-box-direction: reverse;-webkit-box-orient: vertical;";
+            break;
+            default:
+              oldStandard="-webkit-box-direction: normal;-webkit-box-orient: horizontal;";
+        }
+       
+       return oldStandard+standard;  
+      }
+    },
+   {
+      reg:regCompile(/\bflex-wrap\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {        
+        // No Webkit Box fallback.
+        return `-webkit-flex-wrap:${value};
+        -moz-flex-wrap: ${value};
+        -ms-flex-wrap:${value === "nowrap"?"none":value}; 
+        flex-wrap: ${value}`;      
+     }
+   },
+   {
+      reg:regCompile(/\bflex-wrap\s*:\s*([\sa-z-]+?)\b/mg),
+      fn:function(a,value) {        
+        // No Webkit Box fallback.
+        return `-webkit-flex-flow: ${values};
+        -moz-flex-flow: ${values};
+        -ms-flex-flow: ${values};
+        flex-flow: ${values}`; 
+      }
+    },
+    {
+      reg:regCompile(/\border\s*:\s*(\d+?)\b/mg),
+      fn:function(a,value) {
+        value=parseInt(value,10)||0;
+        return `-webkit-box-ordinal-group: ${value + 1};
+        -webkit-order: ${value};
+        -moz-order: ${value};
+        -ms-flex-order: ${value};
+        order: ${value}`;
+      }
+    },
+    {
+      reg:regCompile(/\bflex-grow\s*:\s*(\d+?)\b/mg),
+      fn:function(a,value) {
+        value=parseInt(value,10)||0;
+        return `-webkit-box-flex: ${value};
+            -webkit-flex-grow: ${value};
+            -moz-flex-grow: ${value};
+            -ms-flex-positive: ${value};
+            flex-grow: ${value}`;
+      }
+    },
+    {
+      reg:regCompile(/\bflex-shrink\s*:\s*(\d+?)\b/mg),
+      fn:function(a,value) {
+        value=parseInt(value,10)||1;
+        return `-webkit-flex-shrink: ${value};
+            -moz-flex-shrink: ${value};
+            -ms-flex-negative: ${value};
+            flex-shrink: ${value}`;
+      }
+    },
+    {
+      reg:regCompile(/\bflex-basis\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {
+        return `-webkit-flex-basis: ${value};
+            -moz-flex-basis: ${value};
+            -ms-flex-preferred-size: ${value};
+            flex-basis: ${value}`;
+      }
+    },
+    {
+      reg:regCompile(/\bflex\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,v) {
+         var  s=v.trim().split(" ");          
+        return ` -webkit-box-flex: ${v[0]};
+          -moz-box-flex:${v[0]}; 
+          -webkit-flex:${v}; 
+          -moz-flex: ${v};
+          -ms-flex: ${v};
+          ${a}`;
+      }
+    },
+    {
+      reg:regCompile(/\bjustify-content\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {
+          var out;
+          switch(value)
+          {
+              case "flex-start":
+               out="-webkit-box-pack: start;-ms-flex-pack: start;";
+              break;
+              case "flex-end":
+                out="-webkit-box-pack: end;-ms-flex-pack: end;";
+              break;
+              case "space-between":
+                out="webkit-box-pack: justify;-ms-flex-pack: justify;";
+              break;
+              case "space-around":
+                out="-ms-flex-pack: distribute;";	
+              break;
+              default:
+                out=`-webkit-box-pack: ${value};
+                   -ms-flex-pack: ${value};`;
+            }
+
+            out+=`-webkit-justify-content: ${value};
+                 -moz-justify-content: ${value};
+                 justify-content: ${value}`;
+            
+            return out;
+      }
+    },
+    {
+      reg:regCompile(/\balign-items\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {
+          var out;
+          switch(value)
+          {
+              case "flex-start":
+                out="-webkit-box-align: start;-ms-flex-align: start;";
+              break;
+              case "flex-end":
+                out="-webkit-box-align: end;-ms-flex-align: end;";
+              break;
+              default:
+                out=`-webkit-box-align: ${value};
+                   -ms-flex-align: ${value};`;
+           }
+
+           out+=`-webkit-align-items: ${value};
+                -moz-align-items: ${value};
+                ${a}`;
+          
+          return out;
+      }
+    },
+    {
+      reg:regCompile(/\balign-self\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {
+          // No Webkit Box Fallback.
+         return `-webkit-align-self: ${value};
+            -moz-align-self: ${value};            
+            -ms-flex-item-align:${value === "flex-start"?"start":(value==="flex-end"?"end":value)};
+            ${a}`;
+      }
+    },
+    {
+      reg:regCompile(/\balign-content\s*:\s*([^;\}]+?)(?=;|\})/mg),
+      fn:function(a,value) {
+         // No Webkit Box Fallback.
+        return `-webkit-align-content: ${value};
+            -moz-align-content: ${value};     
+            -ms-flex-line-pack:${value==="flex-start"?"start":(value==="flex-end"?"end":value)};
+            ${a}`;
+      }
+    }
+  /* flex end  */
 ];
 
 //通用的，直接在前面加前缀
@@ -68,16 +265,6 @@ function _transition(transition){
             ${transition}`;
        
    }
-    return out;
-}
-
-//处理animation
-function _animation(animation,left,keyframes_name){
-     var out=`${_WEBKIT_}${left}${_WEBKIT_}${keyframes_name};
-            ${_MOZ_}${left}${_MOZ_}${keyframes_name};
-            ${_O_}${left}${_O_}${keyframes_name};
-            ${animation}`;
-
     return out;
 }
 
